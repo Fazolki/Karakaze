@@ -13,7 +13,7 @@ sleep 5
 
 # Start localtunnel with custom subdomain
 echo "[INFO] Launching LocalTunnel at https://karakaze.loca.lt"
-lt --port 80 --subdomain karakaze
+lt --port 8080 --subdomain karakaze
 
 # Kill the server when tunnel closes
 kill $SERVER_PID
