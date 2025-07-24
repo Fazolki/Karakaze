@@ -1,1 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"/>
+  <title>KaraKaze</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background-color: #ffffff; /* white dominant */
+      color: #000000; /* black accent for text */
+      font-family: sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
+    h2 {
+      margin: 10px 0 5px 0;
+      font-weight: normal;
+      color: #ffb6c1; /* baby pink */
+    }
+
+    /* Container for main content */
+    #main {
+      flex: 1;
+      display: flex;
+      width: 100vw;
+      height: calc(100vh - 50px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Video feed centered, full height */
+    #videoFeed {
+      max-height: 100%;
+      max-width: 100%;
+      margin: auto;
+      display: block;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      border: 2px solid #ffb6c1; /* baby pink border */
+      border-radius: 8px;
+      background-color: #ffe6eb; /* very light baby pink background behind video */
+    }
+
+    /* Joystick bottom-left fixed */
+    #joystickContainer {
+      position: fixed;
+      bottom: 10px;
+      left: 10px;
+      width: 150px;
+      height: 150px;
+      background: #ffb6c1; /* baby pink */
+      border-radius: 50%;
+      touch-action: none;
+      z-index: 10;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      box-shadow: 0 0 8px #cc8fa0;
+    }
+
+    #joystick {
+      width: 60px;
+      height: 60px;
+      background: #ffd6dc; /* lighter baby pink */
+      border-radius: 50%;
+      position: absolute;
+      top: 45px;
+      left: 45px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #cameraSlider {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 10;
+      user-select: none;
+      color: #ffb6c1; /* baby pink text */
+    }
+
+    #gripperSlider {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      user-select: none;
+      color: #ffb6c1; /* baby pink text */
+    }
+
+    .slider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #ffb6c1; /* baby pink */
+      font-size: 0.9em;
+      user-select: none;
+      margin: 10px 0;
+    }
+
+    input[type="range"] {
+      writing-mode: vertical-lr;
+      direction: rtl;
+      width: 30px;
+      height: 150px;
+      margin: 5px 0;
+      background: #ffe6eb; /* very light baby pink track */
+      border-radius: 8px;
+      cursor: pointer;
+      accent-color: #ffb6c1; /* baby pink slider thumb */
+      border: 1px solid #ffb6c1;
+    }
+
+    /* Buttons bottom-right side-by-side */
+    #buttons {
+      position: fixed;
+      bottom: 20px;
+      right: 10px;
+      display: flex;
+      gap: 10px;
+      z-index: 10;
+    }
+
+    button.control-btn {
+      padding: 10px 18px;
+      background-color: #ffb6c1; /* baby pink */
+      border: none;
+      border-radius: 8px;
+      color: black;
+      font-size: 1em;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      min-width: 70px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background-color 0.2s ease;
+    }
+
+    button.control-btn:active {
+      background-color: #cc8fa0; /* slightly darker baby pink on active */
+    }
+
+    /* Hide joystick on large screens, show keyboard instructions instead */
+    @media (min-width: 1000px) {
+      #joystickContainer {
+        display: none;
+      }
+    }
+
+    @media (max-width: 1001px) {
+      .keyboard-controls {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="main">
+    <img src="/video" alt="Live Video Feed" id="videoFeed" />
+
+    <div id="joystickContainer" aria-label="Joystick control" role="slider" tabindex="0">
+      <div id="joystick"></div>
+    </div>
+
+    <!-- Camera Tilt Slider - Top Left -->
+    <div id="cameraSlider" class="slider">
+      <label for="cameraTiltSlider">Camera Tilt</label>
+      <input type="range" id="cameraTiltSlider" min="0" max="90" value="45" />
+    </div>
+
+    <!-- Gripper Tilt Slider - Top Right -->
+    <div id="gripperSlider" class="slider">
+      <label for="gripperTiltSlider">Gripper Tilt</label>
+      <input type="range" id="gripperTiltSlider" min="0" max="45" value="22" />
+    </div>
+
+    <div id="buttons" role="group" aria-label="Gripper controls">
+      <button class="control-btn" id="btnClose">Close</button>
+      <button class="control-btn" id="btnOpen">Open</button>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+    <h2>KaraKaze V0.1</h2>
+    <button class="control-btn" id="btnFullscreen" aria-label="Toggle Fullscreen">⛶</button>
+  </div>
+
+  <div class="keyboard-controls" style="text-align:center; margin-top: 5px; color:#ffb6c1;">
+    <p>Use W A S D keys to control.</p>
+  </div>
+
+  <script>
+    const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws');
+
+    ws.onopen = () => console.log('WebSocket connected');
+    ws.onerror = err => console.error('WebSocket error:', err);
+    ws.onclose = () => console.log('WebSocket disconnected');
+
+    // Sliders
+    const cameraTiltSlider = document.getElementById('cameraTiltSlider');
+    cameraTiltSlider.oninput = e => {
+      ws.send(JSON.stringify({ type: 'cameraTilt', value: +e.target.value }));
+    };
+
+    const gripperTiltSlider = document.getElementById('gripperTiltSlider');
+    gripperTiltSlider.oninput = e => {
+      ws.send(JSON.stringify({ type: 'gripperTilt', value: +e.target.value }));
+    };
+
+    // Buttons with hold and release messages
+    const setupHoldButton = (id, action) => {
+      const btn = document.getElementById(id);
+      let interval;
+
+      btn.addEventListener('mousedown', () => {
+        ws.send(JSON.stringify({ type: action }));
+        interval = setInterval(() => {
+          ws.send(JSON.stringify({ type: action }));
+        }, 100);
+      });
+
+      btn.addEventListener('mouseup', () => {
+        clearInterval(interval);
+        ws.send(JSON.stringify({ type: action + "_release" }));
+      });
+
+      btn.addEventListener('mouseleave', () => {
+        clearInterval(interval);
+        ws.send(JSON.stringify({ type: action + "_release" }));
+      });
+
+      btn.addEventListener('touchstart', e => {
+        e.preventDefault();
+        ws.send(JSON.stringify({ type: action }));
+        interval = setInterval(() => {
+          ws.send(JSON.stringify({ type: action }));
+        }, 100);
+      });
+
+      btn.addEventListener('touchend', e => {
+        e.preventDefault();
+        clearInterval(interval);
+        ws.send(JSON.stringify({ type: action + "_release" }));
+      });
+    };
+
+    setupHoldButton('btnClose', 'close');
+    setupHoldButton('btnOpen', 'open');
+
+    // Fullscreen toggle logic
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen().catch(err => {
+          console.error(`Error attempting to exit fullscreen mode: ${err.message}`);
+        });
+      }
+    });
+
+    // WASD keys control (desktop)
+    document.addEventListener('keydown', e => {
+      const keys = ['w', 'a', 's', 'd'];
+      if (keys.includes(e.key.toLowerCase())) {
+        ws.send(JSON.stringify({ type: 'key', key: e.key.toUpperCase() }));
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      ws.send(JSON.stringify({ type: 'key_release', key: e.key }));
+    });
+
+
+    // Joystick (mobile)
+    const joystick = document.getElementById('joystick');
+    const container = document.getElementById('joystickContainer');
+
+    let isDragging = false;
+    let centerX, centerY;
+
+    const updateJoystick = (x, y) => {
+      const dx = x - centerX;
+      const dy = y - centerY;
+      const maxDist = 60;
+      const distance = Math.min(Math.sqrt(dx * dx + dy * dy), maxDist);
+      const angle = Math.atan2(dy, dx);
+      const newX = distance * Math.cos(angle);
+      const newY = distance * Math.sin(angle);
+
+      joystick.style.left = `${75 + newX - 30}px`;
+      joystick.style.top = `${75 + newY - 30}px`;
+
+      const normX = +(newX / maxDist).toFixed(2);
+      const normY = +(newY / maxDist).toFixed(2);
+
+      ws.send(JSON.stringify({ type: 'joystick', x: normX, y: normY }));
+    };
+
+    const endJoystick = () => {
+      isDragging = false;
+      joystick.style.left = '45px';
+      joystick.style.top = '45px';
+      ws.send(JSON.stringify({ type: 'joystick', x: 0, y: 0 }));
+    };
+
+    container.addEventListener('touchstart', e => {
+      const rect = container.getBoundingClientRect();
+      centerX = rect.left + rect.width / 2;
+      centerY = rect.top + rect.height / 2;
+      isDragging = true;
+    });
+
+    container.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      updateJoystick(touch.clientX, touch.clientY);
+    }, { passive: false });
+
+    container.addEventListener('touchend', endJoystick);
+  </script>
+</body>
+</html>
