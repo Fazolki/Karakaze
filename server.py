@@ -104,4 +104,4 @@ async def decode_audio(webm_data):
 app = web.Application()
 app.add_routes(routes)
 
-web.run_app(app, host='0.0.0.0', port=8080)
+web.run_app(app, host='0.0.0.0', port=80)

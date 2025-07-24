@@ -1,14 +1,11 @@
 #!/bin/bash
 
-# Path to your virtual environment
-VENV_PATH="$HOME/Karakaze/myvenv"
+# Path to your virtual environment's Python
+PY="$HOME/Karakaze/myvenv/bin/python"
 
-# Activate virtual environment
-source "$VENV_PATH/bin/activate"
-
-# Start server.py in the background
+# Start server.py using the virtualenv Python
 echo "[INFO] Starting server.py..."
-python3 server.py &
+"$PY" server.py &
 SERVER_PID=$!
 
 # Wait a few seconds to allow the server to start
@@ -16,7 +13,7 @@ sleep 5
 
 # Start localtunnel with custom subdomain
 echo "[INFO] Launching LocalTunnel at https://karakaze.loca.lt"
-lt --port 8080 --subdomain karakaze
+lt --port 80 --subdomain karakaze
 
-# Optional: kill the server when tunnel closes
+# Kill the server when tunnel closes
 kill $SERVER_PID
